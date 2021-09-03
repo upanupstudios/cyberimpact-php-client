@@ -7,7 +7,12 @@ use GuzzleHttp\ClientInterface;
 
 class Cyberimpact
 {
-  public const API_URL = 'https://api.cyberimpact.com';
+  /**
+   * The REST API URL.
+   *
+   * @var string $api_url
+   */
+  private $api_url = 'https://api.cyberimpact.com';
 
   /**
    * The Cyberimpact API token to authenticate with.
