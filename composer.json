@@ -23,7 +23,7 @@
       "symfony/phpunit-bridge": "^5.1.5"
   },
   "autoload": {
-      "psr-4": { "Cyberimpact\\": "src/" }
+      "psr-4": { "UpanupStudios\\Cyberimpact\\": "src/" }
   },
   "config": {
       "sort-packages": true
