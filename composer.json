@@ -1,5 +1,5 @@
 {
-  "name": "upanup/cyberimpact-php-client",
+  "name": "upanupstudios/cyberimpact-php-client",
   "description": "Cyberimpact API client for PHP",
   "keywords": ["cyberimpact", "api"],
   "licencse": "MIT",
