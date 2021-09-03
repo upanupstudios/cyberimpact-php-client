@@ -76,9 +76,6 @@ class Cyberimpact
       $options['headers']['X-Trigger-Error'] = $this->debug_error_code;
     }
 
-    //TODO: Need to handle response object
-    $response = $this->client->request('GET', $this->api_url . '/ping', (array) $options);
-
-    return $response->getStatusCode() == 200;
+    return $this->client->request('GET', $this->api_url . '/ping', (array) $options);
   }
 }
