@@ -1,0 +1,37 @@
+{
+  "name": "upanup/cyberimpact-php-api",
+  "description": "Cyberimpact API for PHP",
+  "keywords": ["cyberimpact", "api"],
+  "licencse": "MIT",
+  "authors": [
+    {
+      "name": "Marco Maranao",
+      "email": "marcom@upanup.com"
+    }
+  ],
+  "require": {
+      "php": ">=7.3",
+      "ext-json": "*",
+      "guzzlehttp/guzzle": "^6.0",
+      "psr/http-client": "^1.0",
+      "psr/http-client-implementation": "^1.0",
+      "psr/http-factory": "^1.0",
+      "psr/http-factory-implementation": "^1.0",
+      "symfony/deprecation-contracts": "^2.1",
+      "symfony/options-resolver": "^4.4|^5.0"
+  },
+  "require-dev": {
+      "friendsofphp/php-cs-fixer": "^3.0",
+      "nyholm/psr7": "^1.2",
+      "phpstan/phpstan": "^0.12.42",
+      "phpstan/phpstan-phpunit": "^0.12.16",
+      "symfony/http-client": "^5.0",
+      "symfony/phpunit-bridge": "^5.1.5"
+  },
+  "autoload": {
+      "psr-4": { "Cyberimpact\\": "src/" }
+  },
+  "config": {
+      "sort-packages": true
+  }
+}
