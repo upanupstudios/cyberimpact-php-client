@@ -1,1 +1,1 @@
-# cyberimpact-php-api
+# cyberimpact-php-client
