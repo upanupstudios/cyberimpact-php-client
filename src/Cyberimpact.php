@@ -1,6 +1,6 @@
 <?php
 
-namespace UpanupStudios\Cyberimpact;
+namespace Upanupstudios\Cyberimpact\Php\Client;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
