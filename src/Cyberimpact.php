@@ -61,4 +61,24 @@ class Cyberimpact
 
     return $client;
   }
+
+  public function ping() {
+    // Set default request options with auth header.
+    $options = [
+      'headers' => [
+        'Content-Type' => 'application/json',
+        'Authorization' => 'Bearer ' . $this->api_token,
+      ],
+    ];
+
+    // Add trigger error header if a debug error code has been set.
+    if (!empty($this->debug_error_code)) {
+      $options['headers']['X-Trigger-Error'] = $this->debug_error_code;
+    }
+
+    //TODO: Need to handle response object
+    $response = $this->client->request('GET', $this->api_url . '/ping', (array) $options);
+
+    return $response->getStatusCode() == 200;
+  }
 }
