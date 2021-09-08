@@ -52,6 +52,31 @@ class Cyberimpact
       return $this->streamFactory;
   }
 
+  public function sendRequest(RequestInterface $request): array
+  {
+      $response = $this->httpClient->sendRequest($request);
+
+      $contentType = $response->getHeader('Content-Type')[0] ?? 'application/json';
+
+      if (!preg_match('/\bjson\b/i', $contentType)) {
+          throw new JsonException("Response content-type is '$contentType' while a JSON-compatible one was expected.");
+      }
+
+      $content = $response->getBody()->__toString();
+
+      try {
+          $content = json_decode($content, true, 512, JSON_BIGINT_AS_STRING | JSON_THROW_ON_ERROR);
+      } catch (\JsonException $e) {
+          throw new JsonException($e->getMessage(), $e->getCode(), $e);
+      }
+
+      if (!is_array($content)) {
+          throw new JsonException(sprintf('JSON content was expected to decode to an array, %s returned.', gettype($content)));
+      }
+
+      return $content;
+  }
+
   public function ping() {
     $request = $this->getRequestFactory()->createRequest('GET', $this->api_url.'/ping');
     $request = $request->withHeader('Authorization', "Bearer {$this->getConfig()->getApiToken()}");
