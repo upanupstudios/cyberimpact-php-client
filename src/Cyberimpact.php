@@ -2,8 +2,12 @@
 
 namespace Upanupstudios\Cyberimpact\Php\Client;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
+use Symfony\Component\HttpClient\Psr18Client;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\RequestInterface;
 
 class Cyberimpact
 {
@@ -14,12 +18,10 @@ class Cyberimpact
    */
   private $api_url = 'https://api.cyberimpact.com';
 
-  /**
-   * The Cyberimpact API token to authenticate with.
-   *
-   * @var string $api_token
-   */
-  private $api_token;
+  private $config;
+  private $httpClient;
+  private $requestFactory;
+  private $streamFactory;
 
   /**
    * @param string $method Authentication method (self::METHOD_BASIC or self::METHOD_JWT)
@@ -27,60 +29,33 @@ class Cyberimpact
    * @param string $password Password for Basic Auth
    * @throws Exception if $method is not basic or jwt
    */
-  public function __construct($api_token, ClientInterface $client = NULL, $http_options = []) {
-    $this->api_token = $api_token;
-
-    if (!empty($client)) {
-      $this->client = $client;
-    }
-    else {
-      $this->client = $this->getDefaultHttpClient($http_options);
-    }
+  public function __construct(Config $config, ClientInterface $httpClient, RequestFactoryInterface $requestFactory, StreamFactoryInterface $streamFactory)
+  {
+    $this->config = $config;
+    $this->httpClient = $httpClient;
+    $this->requestFactory = $requestFactory;
+    $this->streamFactory = $streamFactory;
   }
 
-  /**
-   * Instantiates a default HTTP client based on the local environment.
-   *
-   * @param array $http_options
-   *   HTTP client options.
-   *
-   * @return CyberimpactHttpClientInterface
-   *   The HTTP client.
-   */
-  private function getDefaultHttpClient($http_options) {
-    // Process HTTP options.
-    // Handle deprecated 'timeout' argument.
-    if (is_int($http_options)) {
-      $http_options = [
-        'timeout' => $http_options,
-      ];
-    }
+  public function getConfig(): Config
+  {
+      return $this->config;
+  }
 
-    // Default timeout is 10 seconds.
-    $http_options += [
-      'timeout' => 10,
-    ];
+  public function getRequestFactory(): RequestFactoryInterface
+  {
+      return $this->requestFactory;
+  }
 
-    // Use Guzzle client.
-    $client = new Client($http_options);
-
-    return $client;
+  public function getStreamFactory(): StreamFactoryInterface
+  {
+      return $this->streamFactory;
   }
 
   public function ping() {
-    // Set default request options with auth header.
-    $options = [
-      'headers' => [
-        'Content-Type' => 'application/json',
-        'Authorization' => 'Bearer ' . $this->api_token,
-      ],
-    ];
+    $request = $this->getRequestFactory()->createRequest('GET', $this->api_url.'/ping');
+    $request = $request->withHeader('Authorization', "Bearer {$this->getConfig()->getApiToken()}");
 
-    // Add trigger error header if a debug error code has been set.
-    if (!empty($this->debug_error_code)) {
-      $options['headers']['X-Trigger-Error'] = $this->debug_error_code;
-    }
-
-    return $this->client->request('GET', $this->api_url . '/ping', (array) $options);
+    return $this->sendRequest($request);
   }
 }
