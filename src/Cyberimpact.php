@@ -37,6 +37,11 @@ class Cyberimpact
     $this->streamFactory = $streamFactory;
   }
 
+  public function getApiUrl()
+  {
+      return $this->api_url;
+  }
+
   public function getConfig(): Config
   {
       return $this->config;
@@ -77,10 +82,44 @@ class Cyberimpact
       return $content;
   }
 
-  public function ping() {
+  public function ping()
+  {
     $request = $this->getRequestFactory()->createRequest('GET', $this->api_url.'/ping');
+    $request = $request->withHeader('Accept', 'application/json');
     $request = $request->withHeader('Authorization', "Bearer {$this->getConfig()->getApiToken()}");
 
     return $this->sendRequest($request);
+  }
+
+  /**
+   * @return object
+   *
+   * @throws InvalidArgumentException
+   */
+  public function api(string $name)
+  {
+    switch ($name) {
+        case 'groups':
+            $api = new Groups($this);
+            break;
+
+        case 'mailings':
+            $api = new Mailings($this);
+            break;
+
+        default:
+            throw new InvalidArgumentException("Undefined api instance called: '$name'.");
+    }
+
+    return $api;
+  }
+
+  public function __call(string $name, array $args): object
+  {
+    try {
+        return $this->api($name);
+    } catch (InvalidArgumentException $e) {
+        throw new BadMethodCallException("Undefined method called: '$name'.");
+    }
   }
 }

@@ -16,6 +16,6 @@ final class Config
    */
   public function getApiToken(): string
   {
-      return $this->apiToken;
+    return $this->apiToken;
   }
 }
