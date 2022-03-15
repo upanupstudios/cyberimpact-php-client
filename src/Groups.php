@@ -2,32 +2,27 @@
 
 namespace Upanupstudios\Cyberimpact\Php\Client;
 
-class Groups extends AbstractApi 
+class Groups extends AbstractApi
 {
-  public function __construct(Cyberimpact $client)
-  {
-    parent::__construct($client);
-  }
-
   /**
-   * Get all groups.
-   *
-   * User authentication key must be set.
+   * Retrieve a paginated list of groups.
    */
-  public function getAll($params = []): array
+  public function getAll($params = [])
   {
     //TODO: allow parameters to be passed
     //NOTE: limit - The amount of results per page (max: 10 000) Default: 20.
-    $request = $this->createRequest('GET', '/groups?limit=9999');
-    $request = $request->withHeader('Authorization', "Bearer {$this->client->getConfig()->getApiToken()}");
+    $response = $this->client->request('GET', 'groups?limit=9999');
 
-    return $this->client->sendRequest($request);
+    return $response;
   }
 
+  /**
+   * Retrieve a specific group by title
+   */
   public function getByTitle($title)
   {
     $groups = $this->getAll();
-    
+
     if(!empty($groups['groups'])) {
       foreach($groups['groups'] as $group) {
         if($group['title'] == $title) {
@@ -40,20 +35,12 @@ class Groups extends AbstractApi
   }
 
   /**
-   * Send new notification with provided data.
-   *
-   * Application authentication key and ID must be set.
+   * Add a new static group in your account.
    */
   public function add(array $data): array
   {
-    //Use resolver to make sure we get clean data
-    //$resolvedData = $this->resolverFactory->createNotificationResolver()->resolve($data);
+    $response = $this->client->request('POST', 'groups');
 
-    $request = $this->createRequest('POST', '/groups');
-    $request = $request->withHeader('Authorization', "Bearer {$this->client->getConfig()->getApiToken()}");
-    $request = $request->withHeader('Content-Type', 'application/json');
-    $request = $request->withBody($this->createStream($data));
-
-    return $this->client->sendRequest($request);
+    return $response;
   }
 }

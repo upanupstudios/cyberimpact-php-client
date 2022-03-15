@@ -2,12 +2,8 @@
 
 namespace Upanupstudios\Cyberimpact\Php\Client;
 
-use Symfony\Component\HttpClient\Psr18Client;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Http\Message\RequestInterface;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\RequestException;
 
 class Cyberimpact
 {
@@ -20,95 +16,83 @@ class Cyberimpact
 
   private $config;
   private $httpClient;
-  private $requestFactory;
-  private $streamFactory;
 
-  /**
-   * @param string $method Authentication method (self::METHOD_BASIC or self::METHOD_JWT)
-   * @param string $user Username or Token
-   * @param string $password Password for Basic Auth
-   * @throws Exception if $method is not basic or jwt
-   */
-  public function __construct(Config $config, ClientInterface $httpClient, RequestFactoryInterface $requestFactory, StreamFactoryInterface $streamFactory)
+  public function __construct(Config $config, ClientInterface $httpClient)
   {
     $this->config = $config;
     $this->httpClient = $httpClient;
-    $this->requestFactory = $requestFactory;
-    $this->streamFactory = $streamFactory;
   }
 
   public function getApiUrl()
   {
-      return $this->api_url;
+    return $this->api_url;
   }
 
   public function getConfig(): Config
   {
-      return $this->config;
+    return $this->config;
   }
 
-  public function getRequestFactory(): RequestFactoryInterface
+  public function request(string $method, string $uri, array $options = [])
   {
-      return $this->requestFactory;
-  }
+    try {
+      $defaultOptions = [
+        'headers' => [
+          'Accept' => 'application/json',
+          'Content-Type' => 'application/json',
+          'Authorization' => 'Bearer '.$this->config->getApiToken()
+        ]
+      ];
 
-  public function getStreamFactory(): StreamFactoryInterface
-  {
-      return $this->streamFactory;
-  }
-
-  public function sendRequest(RequestInterface $request): array
-  {
-      $response = $this->httpClient->sendRequest($request);
-
-      $contentType = $response->getHeader('Content-Type')[0] ?? 'application/json';
-
-      if (!preg_match('/\bjson\b/i', $contentType)) {
-          throw new JsonException("Response content-type is '$contentType' while a JSON-compatible one was expected.");
+      if(!empty($options)) {
+        //TODO: This might not be a deep merge...
+        $options = array_merge($defaultOptions, $options);
+      } else {
+        $options = $defaultOptions;
       }
 
-      $content = $response->getBody()->__toString();
+      $request = $this->httpClient->request($method, $this->api_url.'/'.$uri, $options);
 
-      try {
-          $content = json_decode($content, true, 512, JSON_BIGINT_AS_STRING | JSON_THROW_ON_ERROR);
-      } catch (\JsonException $e) {
-          throw new JsonException($e->getMessage(), $e->getCode(), $e);
-      }
+      $body = $request->getBody();
+      $response = $body->__toString();
 
-      if (!is_array($content)) {
-          throw new JsonException(sprintf('JSON content was expected to decode to an array, %s returned.', gettype($content)));
-      }
+      // Return as array
+      $response = json_decode($response, TRUE);
+    } catch (\JsonException $exeption) {
+      $response = $exeption->getMessage();
+    } catch (RequestException $exception) {
+      $response = $exception->getMessage();
+    }
 
-      return $content;
+    return $response;
   }
 
   public function ping()
   {
-    $request = $this->getRequestFactory()->createRequest('GET', $this->api_url.'/ping');
-    $request = $request->withHeader('Accept', 'application/json');
-    $request = $request->withHeader('Authorization', "Bearer {$this->getConfig()->getApiToken()}");
+    $response = $this->request('GET', 'ping');
 
-    return $this->sendRequest($request);
+    return $response;
   }
 
   /**
    * @return object
    *
-   * @throws InvalidArgumentException
+   * @throws \InvalidArgumentException
+   *  If $class does not exist.
    */
-  public function api(string $name)
+  public function api(string $class)
   {
-    switch ($name) {
-        case 'groups':
-            $api = new Groups($this);
-            break;
+    switch ($class) {
+      case 'groups':
+        $api = new Groups($this);
+        break;
 
-        case 'mailings':
-            $api = new Mailings($this);
-            break;
+      case 'mailings':
+        $api = new Mailings($this);
+        break;
 
-        default:
-            throw new InvalidArgumentException("Undefined api instance called: '$name'.");
+      default:
+        throw new \InvalidArgumentException("Undefined api instance called: '$class'.");
     }
 
     return $api;
@@ -118,8 +102,8 @@ class Cyberimpact
   {
     try {
         return $this->api($name);
-    } catch (InvalidArgumentException $e) {
-        throw new BadMethodCallException("Undefined method called: '$name'.");
+    } catch (\InvalidArgumentException $e) {
+        throw new \BadMethodCallException("Undefined method called: '$name'.");
     }
   }
 }
