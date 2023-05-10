@@ -17,7 +17,7 @@ class Groups extends AbstractApi
   }
 
   /**
-   * Retrieve a specific group by title
+   * Retrieve a specific group by title.
    */
   public function getByTitle($title)
   {
@@ -35,12 +35,13 @@ class Groups extends AbstractApi
   }
 
   /**
-   * Add a new static group in your account.
+   * Add a group.
    */
-  public function add(array $data): array
+  public function add(array $data)
   {
-    $response = $this->client->request('POST', 'groups');
+    $options['body'] = json_encode($data);
+
+    $response = $this->client->request('POST', 'groups', $options);
 
     return $response;
   }
-}
