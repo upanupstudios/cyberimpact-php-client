@@ -45,3 +45,4 @@ class Groups extends AbstractApi
 
     return $response;
   }
+}
